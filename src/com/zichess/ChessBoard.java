@@ -1,10 +1,8 @@
 package com.zichess;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import com.zichess.piecemover.PieceMover;
 import com.zichess.piecemover.PieceMoverFactory;
@@ -14,8 +12,6 @@ public class ChessBoard {
 	private Piece[][] board;
 
 	private Color turn;
-
-	Map<String, String> pieceTypeColorVsSymbol;
 
 	public ChessBoard() {
 		board = new Piece[9][9];
@@ -80,23 +76,6 @@ public class ChessBoard {
 		board[2][7] = blackGPawn;
 		board[2][8] = blackHPawn;
 
-//		blackPieces.add(blackAPawn);
-//		blackPieces.add(blackBPawn);
-//		blackPieces.add(blackCPawn);
-//		blackPieces.add(blackDPawn);
-//		blackPieces.add(blackEPawn);
-//		blackPieces.add(blackFPawn);
-//		blackPieces.add(blackGPawn);
-//		blackPieces.add(blackHPawn);
-//		blackPieces.add(blackARook);
-//		blackPieces.add(blackHRook);
-//		blackPieces.add(blackAKNight);
-//		blackPieces.add(blackBKnight);
-//		blackPieces.add(blackBishopOnLight);
-//		blackPieces.add(blackBishopOnDark);
-//		blackPieces.add(blackQueen);
-//		blackPieces.add(blackKing);
-
 		// setting up white pieces
 		board[8][1] = whiteARook;
 		board[8][2] = whiteAKNight;
@@ -114,30 +93,20 @@ public class ChessBoard {
 		board[7][6] = whiteFPawn;
 		board[7][7] = whiteGPawn;
 		board[7][8] = whiteHPawn;
-
-//		whitePieces.add(whiteAPawn);
-//		whitePieces.add(whiteBPawn);
-//		whitePieces.add(whiteCPawn);
-//		whitePieces.add(whiteDPawn);
-//		whitePieces.add(whiteEPawn);
-//		whitePieces.add(whiteFPawn);
-//		whitePieces.add(whiteGPawn);
-//		whitePieces.add(whiteHPawn);
-//		whitePieces.add(whiteARook);
-//		whitePieces.add(whiteHRook);
-//		whitePieces.add(whiteAKNight);
-//		whitePieces.add(whiteBKnight);
-//		whitePieces.add(whiteBishopOnDark);
-//		whitePieces.add(whiteBishopOnLight);
-//		whitePieces.add(whiteQueen);
-//		whitePieces.add(whiteKing);
-
 		turn = Color.WHITE;
-
-		pieceTypeColorVsSymbol = new HashMap<String, String>();
-		System.out.println("******** CHESS BOARD IS SETUP. WHITE TURN *****************\n\n");
 	}
 
+	/**
+	 * This is the main function which is responsible for actually moving a
+	 * particular piece to a target position which is selected by the user
+	 * 
+	 * @param piece
+	 * @param toX
+	 * @param toY
+	 * @return it returns one of the possible values of {@link MoveResult}
+	 * @throws WrongPositionSelectedException in case the selected piece can not
+	 *                                        move to the selected position
+	 */
 	public MoveResult play(Piece piece, int toX, int toY) throws WrongPositionSelectedException {
 		if (piece.getColor() != turn) {
 			System.err.println("can not move. its not your turn as of now");
@@ -169,15 +138,14 @@ public class ChessBoard {
 		} else {
 			oppositeKingColor = Color.WHITE;
 		}
-		// now check if the opposite king is in check
 
-		// if not in check, then validate if it is stalemate
 		if (turn == Color.BLACK) {
 			turn = Color.WHITE;
 		} else {
 			turn = Color.BLACK;
 		}
 
+		// now check if the opposite king is in check
 		boolean checkStatus = CheckFinder.getInstance().isKingInCheck(oppositeKingColor, board);
 		if (checkStatus) {
 			// if in check then check if it is mate
@@ -201,11 +169,10 @@ public class ChessBoard {
 				}
 				}
 			}
-
 		} else {
 			// if not in check, then validate if it is stalemate
-			boolean mate = CheckFinder.getInstance().isKingCheckMate(oppositeKingColor, board);
-			if (mate) {
+			boolean staleMate = CheckFinder.getInstance().isKingCheckMate(oppositeKingColor, board);
+			if (staleMate) {
 				switch (oppositeKingColor) {
 				case WHITE: {
 					return MoveResult.WHITE_STALEMATE;
@@ -240,6 +207,9 @@ public class ChessBoard {
 	public List<Position> availablePositionFor(Piece piece) {
 		// check the turn of the piece
 		if (piece.getColor() != turn) {
+			// if the chosen piece is of different color.
+			// example chosen piece is white and its blacks turn
+			// then simply return empty list
 			return Collections.emptyList();
 		}
 
@@ -263,27 +233,6 @@ public class ChessBoard {
 			}
 		}
 		return nonCheckPositions;
-	}
-
-	public void print() {
-		System.out.println("******************* CHESS BOARD STATE *******************\n\n");
-		for (int i = 1; i <= 8; i++) {
-			for (int j = 1; j <= 8; j++) {
-				String pieceName = "------";
-				if (board[i][j] != null) {
-					Piece piece = board[i][j];
-					String key = piece.getType().name() + "" + piece.getColor().name();
-					if (pieceTypeColorVsSymbol.containsKey(key)) {
-						pieceName = pieceTypeColorVsSymbol.get(key);
-					} else {
-						pieceName = board[i][j].getColor() + "-" + board[i][j].getType().name();
-					}
-				}
-				System.out.print(pieceName + "\t\t");
-			}
-			System.out.print("\n\n\n");
-		}
-		System.out.println("*********************************************************\n\n");
 	}
 
 	public Piece getPiece(int x, int y) {

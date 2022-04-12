@@ -81,6 +81,15 @@ public class CheckFinder {
 		return isKingInCheck(kingColor, futureBoard);
 	}
 
+	/**
+	 * This method checks whether the king is in checkmate or not this is done by
+	 * iterating over the pieces. and if all of the pices can not stop check from
+	 * any position then its a checkmate
+	 * 
+	 * @param kingColor
+	 * @param board
+	 * @return
+	 */
 	public boolean isKingCheckMate(Color kingColor, Piece[][] board) {
 		for (int i = 1; i <= 8; i++) {
 			for (int j = 1; j <= 8; j++) {
