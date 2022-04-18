@@ -13,6 +13,13 @@ public class ChessBoard {
 
 	private Color turn;
 
+	boolean whiteARookMoved = false;
+	boolean blackARookMoved = false;
+	boolean whiteHRookMoved = false;
+	boolean blackHRookMoved = false;
+	boolean whiteKingMoved = false;
+	boolean blackKingMoved = false;
+
 	public ChessBoard() {
 		board = new Piece[9][9];
 		Piece whiteAPawn = new Piece(" pawn ", Color.WHITE, new Position(7, 1), PieceType.PAWN);
@@ -115,11 +122,53 @@ public class ChessBoard {
 		if (!canMove(piece, toX, toY)) {
 			throw new WrongPositionSelectedException("wrong position selected. can not move the piece");
 		}
-		board[piece.getPosition().x][piece.getPosition().y] = null;
+		int fromX = piece.getPosition().x;
+		int fromY = piece.getPosition().y;
+		board[fromX][fromY] = null;
 		piece.getPosition().x = toX;
 		piece.getPosition().y = toY;
 		board[toX][toY] = piece;
-		System.out.println(piece.getName() + " moved to : [" + toX + ", " + toY + "]");
+
+		// check if the move is castle then move the rook also
+		if (piece.getType() == PieceType.KING) {
+			if (piece.getColor() == Color.WHITE) {
+				if (fromY == 5) {
+					if (toY == 7) {
+						// white short castled
+						Piece rook = board[8][8];
+						board[8][8] = null;
+						rook.getPosition().x = 8;
+						rook.getPosition().y = 6;
+						board[8][6] = rook;
+					} else if (toY == 3) {
+						// white long castled
+						Piece rook = board[8][1];
+						board[8][1] = null;
+						rook.getPosition().x = 8;
+						rook.getPosition().y = 4;
+						board[8][4] = rook;
+					}
+				}
+			} else {
+				if (fromY == 5) {
+					if (toY == 7) {
+						// black short castled
+						Piece rook = board[1][8];
+						board[1][8] = null;
+						rook.getPosition().x = 1;
+						rook.getPosition().y = 6;
+						board[1][6] = rook;
+					} else if (toY == 3) {
+						// black long castled
+						Piece rook = board[1][1];
+						board[1][1] = null;
+						rook.getPosition().x = 1;
+						rook.getPosition().y = 4;
+						board[1][4] = rook;
+					}
+				}
+			}
+		}
 
 		// check if a white/black pawn is promoted to Queen
 		Color color = piece.getColor();
@@ -132,6 +181,30 @@ public class ChessBoard {
 			Piece newBlackQueen = new Piece("Queen ", Color.BLACK, new Position(toX, toY), PieceType.QUEEN);
 			board[toX][toY] = newBlackQueen;
 		}
+		
+		if (piece.getType() == PieceType.KING) {
+			if (piece.getColor() == Color.WHITE) {
+				whiteKingMoved = true;
+			} else {
+				blackKingMoved = true;
+			}
+		}
+		if (piece.getType() == PieceType.ROOK) {
+			if (piece.getColor() == Color.WHITE) {
+				if (fromY == 1) {
+					whiteARookMoved = true;
+				} else if (fromY == 8) {
+					whiteHRookMoved = true;
+				}
+			} else {
+				if (fromY == 1) {
+					blackARookMoved = true;
+				} else if (fromY == 8) {
+					blackHRookMoved = true;
+				}
+			}
+		}
+		
 		Color oppositeKingColor = null;
 		if (turn == Color.WHITE) {
 			oppositeKingColor = Color.BLACK;
@@ -144,7 +217,7 @@ public class ChessBoard {
 		} else {
 			turn = Color.BLACK;
 		}
-
+		
 		// now check if the opposite king is in check
 		boolean checkStatus = CheckFinder.getInstance().isKingInCheck(oppositeKingColor, board);
 		if (checkStatus) {
@@ -221,6 +294,30 @@ public class ChessBoard {
 		// check if the target square or if the target piece can be captured
 		PieceMover mover = moverFactory.getMover(piece.getType());
 		List<Position> availablePositions = mover.whereCanMove(piece, board);
+		if (piece.getColor() == Color.WHITE && piece.getType() == PieceType.KING) {
+			if (!whiteHRookMoved && !whiteKingMoved) {
+				if (getPiece(8, 6) == null && getPiece(8, 7) == null) {
+					availablePositions.add(new Position(8, 7));
+				}
+			}
+			if (!whiteARookMoved && !whiteKingMoved) {
+				if (getPiece(8, 4) == null && getPiece(8, 3) == null && getPiece(8, 2) == null) {
+					availablePositions.add(new Position(8, 3));
+				}
+			}
+		}
+		if (piece.getColor() == Color.BLACK && piece.getType() == PieceType.KING) {
+			if (!blackHRookMoved && !blackKingMoved) {
+				if (getPiece(1, 6) == null && getPiece(1, 7) == null) {
+					availablePositions.add(new Position(1, 7));
+				}
+			}
+			if (!blackARookMoved && !blackKingMoved) {
+				if (getPiece(1, 4) == null && getPiece(1, 3) == null && getPiece(1, 2) == null) {
+					availablePositions.add(new Position(1, 3));
+				}
+			}
+		}
 		CheckFinder checkFinder = CheckFinder.getInstance();
 
 		// if my king is already in check then I can move on
