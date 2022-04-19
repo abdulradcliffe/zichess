@@ -15,7 +15,6 @@ ZiChess is a free chess game engine. you can use this project in your game and b
 
 * As of now Auto Queen is supported. whenever a pawn is promoted. it is always promoted to a queen. user can not select which piece he wants to promote
 * En passant is not supported in this model as of now
-* King Castle move is not supported as of now
 
 # Usage
 To use this You can download the project and copy paste the classes in a package
